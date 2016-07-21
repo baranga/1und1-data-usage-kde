@@ -1,62 +1,66 @@
 
-function usage() {
-  var req = new XMLHttpRequest();
-  req.onreadystatechange = function () {
-
-  };
-  req.open('GET', 'https://center.vodafone.de/vfcenter/index.html?browser=web');
-}
-
-
-var counter = 0;
-function init(label) {
-  console.log("init");
-  counter = 0;
-  label.text = "initialize...";
-}
-
-function update(label) {
-  console.log("update()");
-
-  fetchData(function (err, data, isStaleData) {
-    if (err) {
-      label.text = "error: " + err;
-      return;
-    }
-    renderData(label, data, isStaleData);
-  })
-}
-
-var lastData = {count: 0, total: 0};
-var fetchingData = false;
-var FRESH_DATA = false;
-var STALE_DATA = true;
 var UNIT_MULTIPLIER = {
   'kB': 1000,
   'MB': 1000000,
   'GB': 1000000000
 };
 
-function fetchData(next) {
-  if (fetchingData) {
-    console.log("still fetching data");
-    return next(null, lastData, STALE_DATA);
-  }
+var Runner = function () {
+  this.data = {count: 0, total: 0};
+  this.error = null;
+  this._fetching = false;
+  this._fetchCallbacks = [];
+};
+Runner.prototype = {
+  update: function (onUpdated) {
+    console.log('Runner.update(): kick off fetch');
+    onUpdated = onUpdated || function () {};
+    this._fetch(onUpdated);
+  },
 
-  fetchingData = true;
-  var req = new XMLHttpRequest();
-  req.onreadystatechange = function () {
-    console.log("ready state changed to: " + req.readyState);
-    if (req.readyState !== XMLHttpRequest.DONE) {
+  _fetch: function (onFetched) {
+    this._fetchCallbacks.push(onFetched);
+
+    if (this._fetching) {
+      console.log('Runner._fetch(): skip fetch, still running');
       return;
     }
+    this._fetching = true;
 
+    var that = this;
+    this._startFetch(function (req) {
+      that._fetching = false;
+      that._onFetchDone(req);
+
+      var callbacks = that._fetchCallbacks;
+      that._fetchCallbacks = [];
+      for(var i = 0, l = callbacks.length; i < l; i += 1) {
+        callbacks[i](that.error, that.data);
+      }
+    });
+  },
+
+  _startFetch: function (onDone) {
+    var req = new XMLHttpRequest();
+    req.onreadystatechange = function () {
+      console.log("Runner._startFetch(): ready state changed to: " + req.readyState);
+      if (req.readyState !== XMLHttpRequest.DONE) {
+        return;
+      }
+      onDone(req);
+    };
+    req.timeout = 1000;
+    req.open('GET', 'https://center.vodafone.de/vfcenter/index.html?browser=web');
+    req.send();
+  },
+
+  _onFetchDone: function (req) {
     if (req.status !== 200) {
-      return next('server error: ' + req.status);
+      this.error = 'invalid response status: ' + req.status;
+      console.log('Runner._onFetchDone(): error: ' + this.error);
+      return;
     }
-
-    console.log('loading done');
-    fetchingData = false;
+    this.error = null;
 
     var regex = /<span class="count">([0-9,.]+)\s+([KMG]B)<\/span>/g;
     var parts = [];
@@ -80,64 +84,60 @@ function fetchData(next) {
       values.push(num * UNIT_MULTIPLIER[part[2]]);
     });
 
-    lastData = {
+    this.data = {
       count: values[0],
       total: values[1]
     };
-    print(JSON.stringify(lastData));
+  },
 
-    next(null, lastData, FRESH_DATA);
-  };
-  req.timeout = 1000;
-  req.open('GET', 'https://center.vodafone.de/vfcenter/index.html?browser=web');
-  req.send();
-  next(null, lastData, STALE_DATA);
-}
+  renderAbsUsageText: function () {
+    return (
+      this._formatByteNumber(this.data.count) +
+      ' / ' +
+      this._formatByteNumber(this.data.total)
+    );
+  },
 
-function renderData(label, data, isStaleData) {
-  label.text = (
-    formatNumber(data.count) +
-    ' / ' +
-    formatNumber(data.total)
-  );
+  renderRelUsageText: function (precision) {
+    if (typeof precision === 'undefined' || precision === null) {
+      precision = 2;
+    }
+    var ratio = 0;
+    if (this.data.total > 0) {
+      ratio = this.data.count / this.data.total * 100;
+    }
 
-  var ratio = data.count / data.total;
-  label.text += ' ' + (ratio * 100).toString() + '%';
-  if (ratio > 0.9) {
-    label.text += ' r';
-  } else if (ratio > 0.8) {
-    label.text += ' y';
-  } else {
-    label.text += ' g';
+    return ratio.toLocaleString(Qt.locale(), 'f', precision) + '%';
+  },
+
+  renderCombinedUsageText: function () {
+    return this.renderAbsUsageText() + ' (' + this.renderRelUsageText() + ')';
+  },
+
+  _formatByteNumber: function (num) {
+    var mag = Math.log(num) / Math.LN10;
+    var div = 1;
+    var suffix = 'B';
+
+    if (mag >= 9) {
+      div = 1000000000;
+      suffix = 'GB';
+    } else if (mag >= 6) {
+      div = 1000000;
+      suffix = 'MB';
+    } else if (mag >= 3) {
+      div = 1000;
+      suffix = 'kB';
+    }
+
+    var formatted;
+    //if (num % div) {
+    //  formatted = (num / div).toFixed(1);
+    //} else {
+    //  formatted = (num / div).toString();
+    //}
+    formatted = (num / div).toLocaleString();
+
+    return formatted + suffix;
   }
-
-  if (isStaleData) {
-    label.text += ' *';
-  }
-}
-
-function formatNumber(num) {
-  var mag = Math.log(num) / Math.LN10;;
-  var div = 1;
-  var suffix = 'B';
-
-  if (mag >= 9) {
-    div = 1000000000;
-    suffix = 'GB';
-  } else if (mag >= 6) {
-    div = 1000000;
-    suffix = 'MB';
-  } else if (mag >= 3) {
-    div = 1000;
-    suffix = 'kB';
-  }
-
-  var formatted;
-  if (num % div) {
-    formatted = (num / div).toFixed(1);
-  } else {
-    formatted = (num / div).toString();
-  }
-
-  return formatted + suffix;
-}
+};

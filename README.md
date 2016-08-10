@@ -1,15 +1,20 @@
-# 1und1 Data Usage Widget
-to install
+# 1und1 Data Usage KDE Plasma Widget
+Clone the repository and run plasma package manager to install:
 ```bash
-$ plasmapkg2 -i 1und1-data-usage/kde/plasmoid
+$ git clone https://github.com/baranga/1und1-data-usage-kde.git
+$ cd 1und1-data-usage-kde
+$ plasmapkg2 -i plasmoid
 ```
 
-to update
+Pull and rerun plasma package manager to update:
 ```bash
-$ plasmapkg2 -u 1und1-data-usage/kde/plasmoid
+$ cd 1und1-data-usage-kde
+$ git pull
+$ plasmapkg2 -u plasmoid
 ```
 
-to test
+Install/update and then run `plasmoidviewer` or `plasmawindowed` to test:
 ```bash
-$ cd 1und1-data-usage/kde/plasmoid && plasmoidviewer
+$ plasmoidviewer -a de.baranga.1und1-data-usage
+$ plasmawindowed de.baranga.1und1-data-usage
 ```

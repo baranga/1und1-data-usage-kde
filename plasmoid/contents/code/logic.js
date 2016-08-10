@@ -5,8 +5,12 @@ var UNIT_MULTIPLIER = {
   'GB': 1000000000
 };
 
-var Runner = function () {
-  this.data = {count: 0, total: 0};
+var Runner = function (initialData) {
+  initialData = initialData || {};
+  this.data = {
+    count: initialData.count || 0,
+    total: initialData.total || 0
+  };
   this.error = null;
   this._fetching = false;
   this._fetchCallbacks = [];

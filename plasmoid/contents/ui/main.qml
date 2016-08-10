@@ -8,6 +8,7 @@ import '../code/logic.js' as Logic
 Item {
   id: main
 
+  property bool freshData: false
 
   Plasmoid.preferredRepresentation: Plasmoid.fullRepresentation
 
@@ -18,7 +19,7 @@ Item {
 
   PlasmaComponents.Label {
     id: display
-    text: "n/a"
+    text: "n/a *"
 
     height: main.height
     width: display.paintedWidth
@@ -54,21 +55,48 @@ Item {
   function update() {
     runner.update(function (err) {
       if (err) return
-      display.text = runner.renderRelUsageText(0)
-      tooltip.mainText = runner.renderCombinedUsageText()
+
+      main.freshData = true
+      render()
+
+      plasmoid.configuration.lastData = JSON.stringify(runner.data)
     })
+  }
+
+  function render() {
+    display.text = runner.renderRelUsageText(0)
+    tooltip.mainText = runner.renderCombinedUsageText()
+
+    if (!main.freshData) {
+      display.text += '*'
+    }
   }
 
   Timer {
     id: timer
-    interval: 2500
+    interval: plasmoid.configuration.updateInterval * 1000
     running: false
     repeat: true
     onTriggered: update()
   }
 
+  Connections {
+    target: plasmoid.configuration
+    onUpdateIntervalChanged: {
+      timer.interval = plasmoid.configuration.updateInterval * 1000
+    }
+  }
+
   Component.onCompleted: {
-    runner = new Logic.Runner()
+
+    var lastData
+    if (plasmoid.configuration.lastData) {
+      lastData = JSON.parse(plasmoid.configuration.lastData)
+    }
+    runner = new Logic.Runner(lastData)
+
+    render()
+
     update()
     timer.start()
   }

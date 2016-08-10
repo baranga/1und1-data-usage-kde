@@ -8,7 +8,7 @@ Comment=Display actual data usage of 1und1 mobile internet contract.
 Type=Service
 ServiceTypes=Plasma/Applet
 
-X-KDE-PluginInfo-Name=de.baranga.1und1-data-usage
+X-KDE-PluginInfo-Name=de.baranga.1und1-data-usage-widget
 X-KDE-PluginInfo-Version=0.1.0.2
 X-KDE-PluginInfo-Author=baranga
 X-KDE-PluginInfo-Email=baranga@posteo.de

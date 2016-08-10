@@ -12,6 +12,20 @@
             <min>1</min>
             <max>600</max>
         </entry>
+        <entry name="decimalPrecision" type="UInt">
+            <label>Decimal precision</label>
+            <default>0</default>
+            <min>0</min>
+            <max>2</max>
+        </entry>
+        <entry name="showPercentageSign" type="Bool">
+            <label>show percentage sign</label>
+            <default>true</default>
+        </entry>
+        <entry name="showStaleIndicator" type="Bool">
+            <label>show stale indicator</label>
+            <default>false</default>
+        </entry>
     </group>
     <group name="Hidden">
         <entry name="lastData" type="string">

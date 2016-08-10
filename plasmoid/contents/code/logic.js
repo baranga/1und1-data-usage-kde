@@ -102,7 +102,7 @@ Runner.prototype = {
     );
   },
 
-  renderRelUsageText: function (precision) {
+  renderRelUsageText: function (precision, addPercentageSign) {
     if (typeof precision === 'undefined' || precision === null) {
       precision = 2;
     }
@@ -111,11 +111,16 @@ Runner.prototype = {
       ratio = this.data.count / this.data.total * 100;
     }
 
-    return ratio.toLocaleString(Qt.locale(), 'f', precision) + '%';
+    var text = ratio.toLocaleString(Qt.locale(), 'f', precision);
+    if (addPercentageSign) {
+      text  += '%';
+    }
+
+    return text;
   },
 
   renderCombinedUsageText: function () {
-    return this.renderAbsUsageText() + ' (' + this.renderRelUsageText() + ')';
+    return this.renderAbsUsageText() + ' (' + this.renderRelUsageText(2, true) + ')';
   },
 
   _formatByteNumber: function (num) {

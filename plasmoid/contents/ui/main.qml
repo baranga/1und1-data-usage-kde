@@ -19,7 +19,7 @@ Item {
 
   PlasmaComponents.Label {
     id: display
-    text: "n/a *"
+    text: "n/a"
 
     height: main.height
     width: display.paintedWidth
@@ -64,10 +64,13 @@ Item {
   }
 
   function render() {
-    display.text = runner.renderRelUsageText(0)
+    display.text = runner.renderRelUsageText(
+      plasmoid.configuration.decimalPrecision,
+      plasmoid.configuration.showPercentageSign
+    )
     tooltip.mainText = runner.renderCombinedUsageText()
 
-    if (!main.freshData) {
+    if (!main.freshData && plasmoid.configuration.showStaleIndicator) {
       display.text += '*'
     }
   }
@@ -85,6 +88,9 @@ Item {
     onUpdateIntervalChanged: {
       timer.interval = plasmoid.configuration.updateInterval * 1000
     }
+    onShowPercentageSignChanged: render()
+    onShowStaleIndicatorChanged: render()
+    onDecimalPrecisionChanged: render()
   }
 
   Component.onCompleted: {

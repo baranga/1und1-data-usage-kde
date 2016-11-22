@@ -15,6 +15,6 @@ $ plasmapkg2 -u plasmoid
 
 Install/update and then run `plasmoidviewer` or `plasmawindowed` to test:
 ```bash
-$ plasmoidviewer -a de.baranga.1und1-data-usage
-$ plasmawindowed de.baranga.1und1-data-usage
+$ plasmoidviewer -a de.baranga.1und1-data-usage-widget
+$ plasmawindowed de.baranga.1und1-data-usage-widget
 ```

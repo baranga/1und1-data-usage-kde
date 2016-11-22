@@ -54,7 +54,10 @@ Item {
 
   function update() {
     runner.update(function (err) {
-      if (err) return
+      if (err) {
+        main.freshData = false
+        return
+      }
 
       main.freshData = true
       render()

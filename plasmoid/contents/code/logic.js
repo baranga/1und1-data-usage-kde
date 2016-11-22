@@ -1,6 +1,6 @@
 
 var UNIT_MULTIPLIER = {
-  'kB': 1000,
+  'KB': 1000,
   'MB': 1000000,
   'GB': 1000000000
 };
@@ -85,7 +85,7 @@ Runner.prototype = {
     parts.forEach(function (part) {
       var digits = part[1].replace(',', '.');
       var num = parseFloat(digits, 10);
-      values.push(num * UNIT_MULTIPLIER[part[2]]);
+      values.push(num * UNIT_MULTIPLIER[part[2].toUpperCase()]);
     });
 
     this.data = {
